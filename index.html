@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Plant Info</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f5f5f5;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+      }
+
+      .container {
+        position: relative;
+        background: center / cover no-repeat
+          url("https://i.pinimg.com/736x/e5/d7/49/e5d749b21ad12289f5ae3c3ea8405eb3.jpg")
+          /* no-repeat center */;
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        overflow: hidden;
+      }
+
+      .content {
+        display: flex;
+        flex-wrap: wrap;
+        flex-direction: column;
+        background: rgba(255, 255, 255, 0.8); /* Semi-transparent background */
+        border-radius: 10px;
+        padding: 15px;
+        width: 80%;
+        max-width: 400px;
+        text-align: center;
+        justify-content: center;
+        justify-items: center;
+        align-content: center;
+        align-items: center;
+        margin: 20vh auto;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      .info-cards {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        justify-content: space-between;
+        margin-top: 10px;
+      }
+
+      .card {
+        background-color: #f9f9f9;
+        border-radius: 10px;
+        width: 46%;
+        padding: 10px;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .card .label {
+        font-size: 14px;
+        color: #888888;
+      }
+
+      .card .value {
+        font-size: 18px;
+        color: #333333;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="content">
+        <h1>My Plant</h1>
+        <div class="info-cards">
+          <div class="card" style="background-color: #fff0de">
+            <p class="label">Temp</p>
+            <p class="value">24°C</p>
+          </div>
+          <div class="card" style="background-color: #fffac8">
+            <p class="label">Light</p>
+            <p class="value">76%</p>
+          </div>
+          <div class="card" style="background-color: #deefff">
+            <p class="label">Humidity</p>
+            <p class="value">60%</p>
+          </div>
+          <div class="card" style="background-color: #e3d9d3">
+            <p class="label">Fertilizer</p>
+            <p class="value">87%</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
