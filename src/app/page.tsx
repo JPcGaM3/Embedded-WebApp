@@ -32,7 +32,7 @@ const mockData = [
     icon: <MdEmojiEmotions className="w-6 h-6" />,
     title: "Status",
     value: "Good",
-    statusColor: "bg-green-500",
+    statusColor: "bg-green-100",
   },
 ];
 
