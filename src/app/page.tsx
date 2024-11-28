@@ -6,7 +6,7 @@ import { MdEmojiEmotions, MdOutlineLightMode } from "react-icons/md";
 import { WiHumidity } from "react-icons/wi";
 import Image from "next/image";
 import { FaCamera } from "react-icons/fa";
-import { BiSolidCameraOff } from "react-icons/bi"; // Import BiSolidCameraOff
+import { BiSolidCameraOff } from "react-icons/bi";
 
 const mockData = [
   {
@@ -40,44 +40,23 @@ const mockData = [
 export default function Home() {
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const mediaStreamRef = useRef<MediaStream | null>(null);
 
   useEffect(() => {
-    const getCamera = async () => {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: true,
-        });
-        mediaStreamRef.current = stream;
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-        }
-      } catch (err) {
-        console.error("Error accessing camera:", err);
-      }
-    };
-
-    if (isCameraOpen) {
-      getCamera();
-    } else {
-      if (mediaStreamRef.current) {
-        const tracks = mediaStreamRef.current.getTracks();
-        tracks.forEach((track) => track.stop());
-      }
+    if (isCameraOpen && videoRef.current) {
+      // Set up video streaming from the server URL when the camera is open
+      videoRef.current.src = "http://localhost:8080/video_feed";
+      videoRef.current.play(); // Ensure the video starts playing
+    } else if (videoRef.current) {
+      // Stop the video feed when the camera is turned off
+      videoRef.current.pause();
+      videoRef.current.src = "";
     }
-
-    return () => {
-      if (mediaStreamRef.current) {
-        const tracks = mediaStreamRef.current.getTracks();
-        tracks.forEach((track) => track.stop());
-      }
-    };
   }, [isCameraOpen]);
 
   return (
     <div className="h-screen">
-      <div className="flex flex-row">
-        <div className="m-10 w-1/3 h-[400px] border-4 border-black rounded-[2rem]">
+      <div className="px-20 flex flex-row gap-10">
+        <div className="my-10 w-1/3 h-[400px] border-4 border-black rounded-[2rem]">
           <Image
             src="/tree.gif"
             alt="Description of GIF"
@@ -86,7 +65,7 @@ export default function Home() {
             className="rounded-[2rem] object-cover w-full h-full"
           />
         </div>
-        <div className="m-10 w-2/3 h-[400px] rounded-[2rem] border-4 border-black relative">
+        <div className="my-10 w-2/3 h-[400px] rounded-[2rem] border-4 border-black relative">
           {isCameraOpen ? (
             <video
               ref={videoRef}
@@ -115,7 +94,7 @@ export default function Home() {
             key={index}
             className={`my-6 w-44 h-44 border-4 border-black rounded-[2rem] relative ${
               item.title === "Status" ? item.statusColor : ""
-            }`}
+            } hover:scale-105 hover:shadow-xl ease-out duration-300`}
           >
             <div className="flex justify-center items-center absolute top-[-1.25rem] left-1/2 transform -translate-x-1/2 w-12 h-12 rounded-full border-4 border-black bg-white">
               {item.icon}
