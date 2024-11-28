@@ -1,10 +1,11 @@
-'use client';
+"use client";
 import { useEffect, useRef, useState } from "react";
 import { FaTemperatureHalf } from "react-icons/fa6";
 import { GiFertilizerBag } from "react-icons/gi";
 import { MdEmojiEmotions, MdOutlineLightMode } from "react-icons/md";
 import { WiHumidity } from "react-icons/wi";
 import Image from "next/image";
+import { FaCamera } from "react-icons/fa";
 
 const mockData = [
   {
@@ -31,43 +32,18 @@ const mockData = [
     icon: <MdEmojiEmotions className="w-6 h-6" />,
     title: "Status",
     value: "Good",
+    statusColor: "bg-green-500",
   },
 ];
 
 export default function Home() {
-  const [hasPermission, setHasPermission] = useState<boolean>(false);
-  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const videoRef = useRef<HTMLImageElement | null>(null);
 
   useEffect(() => {
-    // Request camera access
-    const getCamera = async () => {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: true, // Request video stream (camera)
-        });
-
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream; // Assign the video stream to the video element
-        }
-
-        setHasPermission(true);
-      } catch (err) {
-        console.error("Error accessing camera: ", err);
-        setHasPermission(false);
-      }
-    };
-
-    // Start camera if permission is granted
-    getCamera();
-
-    // Cleanup on unmount: Stop video stream when component unmounts
-    return () => {
-      if (videoRef.current) {
-        const stream = videoRef.current.srcObject as MediaStream;
-        const tracks = stream?.getTracks();
-        tracks?.forEach((track) => track.stop()); // Stop all tracks (video)
-      }
-    };
+    if (videoRef.current) {
+      // Set the source URL to the Flask backend video feed URL
+      videoRef.current.src = "http://localhost:8080/video_feed";
+    }
   }, []);
 
   return (
@@ -82,25 +58,27 @@ export default function Home() {
             className="rounded-[2rem] object-cover w-full h-full"
           />
         </div>
-        <div className="m-10 w-2/3 h-[400px] rounded-[2rem] border-4 border-black">
-          {/* Video element to display the camera feed */}
-          {hasPermission ? (
-            <video
-              ref={videoRef}
-              autoPlay
-              muted
-              className="w-full h-full rounded-[2rem] object-cover"
-            />
-          ) : (
-            <p className="text-center mt-4">Camera permission denied.</p>
-          )}
+        <div className="m-10 w-2/3 h-[400px] rounded-[2rem] border-4 border-black relative">
+          <img
+            ref={videoRef}
+            alt="Camera feed"
+            style={{
+              width: "100%",
+              height: "auto",
+              borderRadius: "2rem",
+            }}
+          />
+          <div className="flex justify-center items-center absolute bottom-0 right-0 mb-4 mr-4 w-12 h-12 rounded-full border-4 border-black bg-white">
+            <FaCamera />
+          </div>
         </div>
       </div>
       <div className="px-20 flex justify-between flex-row flex-wrap">
         {mockData.map((item, index) => (
           <div
             key={index}
-            className="my-6 w-44 h-44 border-4 border-black rounded-[2rem] relative"
+            className={`my-6 w-44 h-44 border-4 border-black rounded-[2rem] relative ${
+              item.title === "Status" ? item.statusColor : ""}`}
           >
             <div className="flex justify-center items-center absolute top-[-1.25rem] left-1/2 transform -translate-x-1/2 w-12 h-12 rounded-full border-4 border-black bg-white">
               {item.icon}
