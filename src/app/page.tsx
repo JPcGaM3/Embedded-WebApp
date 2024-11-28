@@ -6,6 +6,7 @@ import { MdEmojiEmotions, MdOutlineLightMode } from "react-icons/md";
 import { WiHumidity } from "react-icons/wi";
 import Image from "next/image";
 import { FaCamera } from "react-icons/fa";
+import { BiSolidCameraOff } from "react-icons/bi"; // Import BiSolidCameraOff
 
 const mockData = [
   {
@@ -37,14 +38,41 @@ const mockData = [
 ];
 
 export default function Home() {
-  const videoRef = useRef<HTMLImageElement | null>(null);
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const mediaStreamRef = useRef<MediaStream | null>(null);
 
   useEffect(() => {
-    if (videoRef.current) {
-      // Set the source URL to the Flask backend video feed URL
-      videoRef.current.src = "http://localhost:8080/video_feed";
+    const getCamera = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+        });
+        mediaStreamRef.current = stream;
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+      } catch (err) {
+        console.error("Error accessing camera:", err);
+      }
+    };
+
+    if (isCameraOpen) {
+      getCamera();
+    } else {
+      if (mediaStreamRef.current) {
+        const tracks = mediaStreamRef.current.getTracks();
+        tracks.forEach((track) => track.stop());
+      }
     }
-  }, []);
+
+    return () => {
+      if (mediaStreamRef.current) {
+        const tracks = mediaStreamRef.current.getTracks();
+        tracks.forEach((track) => track.stop());
+      }
+    };
+  }, [isCameraOpen]);
 
   return (
     <div className="h-screen">
@@ -59,17 +87,25 @@ export default function Home() {
           />
         </div>
         <div className="m-10 w-2/3 h-[400px] rounded-[2rem] border-4 border-black relative">
-          <img
-            ref={videoRef}
-            alt="Camera feed"
-            style={{
-              width: "100%",
-              height: "auto",
-              borderRadius: "2rem",
-            }}
-          />
-          <div className="flex justify-center items-center absolute bottom-0 right-0 mb-4 mr-4 w-12 h-12 rounded-full border-4 border-black bg-white">
-            <FaCamera />
+          {isCameraOpen ? (
+            <video
+              ref={videoRef}
+              autoPlay
+              muted
+              className="w-full h-full rounded-[2rem] object-cover"
+            />
+          ) : (
+            <p className="text-center mt-4">Camera is off</p>
+          )}
+          <div
+            className="flex justify-center items-center absolute bottom-0 right-0 mb-4 mr-4 w-12 h-12 rounded-full border-4 border-black bg-white cursor-pointer"
+            onClick={() => setIsCameraOpen((prev) => !prev)}
+          >
+            {isCameraOpen ? (
+              <FaCamera className="w-6 h-6" />
+            ) : (
+              <BiSolidCameraOff className="w-6 h-6" />
+            )}
           </div>
         </div>
       </div>
@@ -78,7 +114,8 @@ export default function Home() {
           <div
             key={index}
             className={`my-6 w-44 h-44 border-4 border-black rounded-[2rem] relative ${
-              item.title === "Status" ? item.statusColor : ""}`}
+              item.title === "Status" ? item.statusColor : ""
+            }`}
           >
             <div className="flex justify-center items-center absolute top-[-1.25rem] left-1/2 transform -translate-x-1/2 w-12 h-12 rounded-full border-4 border-black bg-white">
               {item.icon}
