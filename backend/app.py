@@ -21,7 +21,7 @@ warnings.filterwarnings("ignore", category=FutureWarning)
 def initialize_firebase():
     try:
         # Path to your Firebase service account key JSON file
-        cred = credentials.Certificate('./embreddedproject-firebase-adminsdk-fmxxw-270089beba.json')
+        cred = credentials.Certificate('embreddedproject-firebase-adminsdk-fmxxw-28cefbdd4f.json')
         firebase_admin.initialize_app(cred, {
             'databaseURL': 'https://embreddedproject-default-rtdb.asia-southeast1.firebasedatabase.app/'
         })
@@ -38,7 +38,7 @@ app = Flask(__name__)
 CORS(app)
 
 # Initialize YOLOv5 model
-model_path = pathlib.Path(r"best_v5.pt").resolve()
+model_path = pathlib.Path(r"best_v200.pt").resolve()
 model_path = str(model_path)
 try:
     model = torch.hub.load('ultralytics/yolov5', 'custom', path=model_path, force_reload=True)
