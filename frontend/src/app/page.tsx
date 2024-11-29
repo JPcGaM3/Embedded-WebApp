@@ -46,43 +46,85 @@ export default function Home() {
     color: "white",
   });
 
-  useEffect(() => {
-    const fetchFirebaseData = async () => {
-      try {
-        const response = await fetch("http://localhost:8080/get_firebase_data");
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data: Data = await response.json();
-        console.log("Received data:", data); // Log the data to verify
-        const lightSensorValue = parseInt(data.Server.LightSensor);
-        if (lightSensorValue < 40) {
-          data.Server.LightStatus = "Dark";
-          setStatus({ status: "Very Bad", color: "bg-red-400" });
-        } else if (lightSensorValue < 800) {
-          data.Server.LightStatus = "Dim";
-          setStatus({ status: "Bad", color: "bg-red-100" });
-        } else if (lightSensorValue < 2000) {
-          data.Server.LightStatus = "Light";
-          setStatus({ status: "Moderate", color: "bg-yellow-100" });
-        } else if (lightSensorValue < 3200) {
-          data.Server.LightStatus = "Bright";
-          setStatus({ status: "Good", color: "bg-green-100" });
-        } else {
-          data.Server.LightStatus = "Very bright";
-          setStatus({ status: "Perfect", color: "bg-green-400" });
-        }
-        setData(data);
-      } catch (error) {
-        console.error("Error fetching Firebase data:", error);
-      }
-    };
+    useEffect(() => {
+      const fetchFirebaseData = async () => {
+        try {
+          const response = await fetch(
+            "http://localhost:8080/get_firebase_data"
+          );
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          const data: Data = await response.json();
+          // Parse sensor values from Client and Server
+          const lightSensorValue = parseInt(data.Server.LightSensor);
+          const soilMoisture = parseInt(data.Client.SoilMoist);
+          const temperature = parseFloat(data.Server.Temperature);
+          const humidity = parseFloat(data.Server.Huminity);
+          const waterPumpStatus = data.Client.WaterPump; // "on" or "off"
 
-    fetchFirebaseData();
-    const intervalId = setInterval(fetchFirebaseData, 1000);
+          // Default status and color
+          let status = { status: "Calculating...", color: "bg-white" };
 
-    return () => clearInterval(intervalId);
-  }, []);
+          if (
+            lightSensorValue < 100 ||
+            soilMoisture < 30 ||
+            temperature < 15 ||
+            humidity < 40
+          ) {
+            data.Server.LightStatus = "Dark";
+            status = { status: "Very Bad", color: "bg-red-400" };
+          } else if (
+            lightSensorValue < 1000 ||
+            soilMoisture < 40 ||
+            temperature < 18 ||
+            humidity < 50
+          ) {
+            data.Server.LightStatus = "Dim";
+            status = { status: "Bad", color: "bg-red-100" };
+          } else if (
+            lightSensorValue < 2000 ||
+            soilMoisture < 60 ||
+            temperature < 25 ||
+            humidity < 60
+          ) {
+            data.Server.LightStatus = "Light";
+            status = { status: "Moderate", color: "bg-yellow-100" };
+          } else if (
+            lightSensorValue < 3200 &&
+            soilMoisture <= 80 &&
+            temperature <= 30 &&
+            humidity <= 70
+          ) {
+            data.Server.LightStatus = "Bright";
+            status = { status: "Good", color: "bg-green-100" };
+          } else if (
+            lightSensorValue >= 3200 &&
+            soilMoisture > 80 &&
+            temperature > 30 &&
+            humidity > 70
+          ) {
+            data.Server.LightStatus = "Very bright";
+            status = { status: "Perfect", color: "bg-green-400" };
+          }
+          // Check water pump status to adjust status message
+          if (waterPumpStatus === "on") {
+            status = { status: "Watering", color: "bg-blue-200" };
+          }
+
+          // Update UI state
+          setStatus(status);
+          setData(data);
+        } catch (error) {
+          console.error("Error fetching Firebase data:", error);
+        }
+      };
+
+      fetchFirebaseData();
+      const intervalId = setInterval(fetchFirebaseData, 1000);
+
+      return () => clearInterval(intervalId);
+    }, []);
 
   useEffect(() => {
     if (isCameraOpen && videoRef.current) {
