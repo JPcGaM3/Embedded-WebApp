@@ -39,19 +39,15 @@ const mockData = [
 
 export default function Home() {
   const [isCameraOpen, setIsCameraOpen] = useState(false);
-  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const videoRef = useRef<HTMLImageElement | null>(null);
 
   useEffect(() => {
     if (isCameraOpen && videoRef.current) {
-      // Set up video streaming from the server URL when the camera is open
       videoRef.current.src = "http://localhost:8080/video_feed";
-      videoRef.current.play(); // Ensure the video starts playing
     } else if (videoRef.current) {
-      // Stop the video feed when the camera is turned off
-      videoRef.current.pause();
-      videoRef.current.src = "";
+      videoRef.current.src = ""; 
     }
-  }, [isCameraOpen]);
+  }, [isCameraOpen]); 
 
   return (
     <div className="h-screen">
@@ -67,15 +63,18 @@ export default function Home() {
         </div>
         <div className="my-10 w-2/3 h-[400px] rounded-[2rem] border-4 border-black relative">
           {isCameraOpen ? (
-            <video
-              ref={videoRef}
-              autoPlay
-              muted
-              className="w-full h-full rounded-[2rem] object-cover"
-            />
-          ) : (
+          <img
+            ref={videoRef}
+            alt="loading..."
+            style={{
+              width: "100%",
+              height: "100%",
+              borderRadius: "2rem",
+            }}
+          />
+           ) : (
             <p className="text-center mt-4">Camera is off</p>
-          )}
+          )} 
           <div
             className="flex justify-center items-center absolute bottom-0 right-0 mb-4 mr-4 w-12 h-12 rounded-full border-4 border-black bg-white cursor-pointer"
             onClick={() => setIsCameraOpen((prev) => !prev)}
@@ -83,7 +82,7 @@ export default function Home() {
             {isCameraOpen ? (
               <FaCamera className="w-6 h-6" />
             ) : (
-              <BiSolidCameraOff className="w-6 h-6" />
+            <BiSolidCameraOff className="w-6 h-6" />
             )}
           </div>
         </div>
