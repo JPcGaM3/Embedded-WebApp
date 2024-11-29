@@ -58,16 +58,16 @@ export default function Home() {
         const lightSensorValue = parseInt(data.Server.LightSensor);
         if (lightSensorValue < 40) {
           data.Server.LightStatus = "Dark";
-          setStatus({ status: "Bad", color: "bg-red-400" });
+          setStatus({ status: "Very Bad", color: "bg-red-400" });
         } else if (lightSensorValue < 800) {
           data.Server.LightStatus = "Dim";
           setStatus({ status: "Bad", color: "bg-red-100" });
         } else if (lightSensorValue < 2000) {
           data.Server.LightStatus = "Light";
-          setStatus({ status: "Good", color: "bg-green-100" });
+          setStatus({ status: "Moderate", color: "bg-yellow-100" });
         } else if (lightSensorValue < 3200) {
           data.Server.LightStatus = "Bright";
-          setStatus({ status: "Perfect", color: "bg-green-400" });
+          setStatus({ status: "Good", color: "bg-green-100" });
         } else {
           data.Server.LightStatus = "Very bright";
           setStatus({ status: "Perfect", color: "bg-green-400" });
