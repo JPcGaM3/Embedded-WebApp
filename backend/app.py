@@ -21,7 +21,7 @@ warnings.filterwarnings("ignore", category=FutureWarning)
 def initialize_firebase():
     try:
         # Path to your Firebase service account key JSON file
-        cred = credentials.Certificate('embreddedproject-firebase-adminsdk-fmxxw-28cefbdd4f.json')
+        cred = credentials.Certificate('embreddedproject-firebase-adminsdk-fmxxw-c296098f9f.json')
         firebase_admin.initialize_app(cred, {
             'databaseURL': 'https://embreddedproject-default-rtdb.asia-southeast1.firebasedatabase.app/'
         })
@@ -126,7 +126,15 @@ def generate_frames():
 @app.route('/get_firebase_data')
 def get_firebase_data():
     data = fetch_firebase_data()
-    return jsonify(data) if data else jsonify({"error": "No data found"})
+    client_sensor = data['Client']['SensorData']
+    last_key = next(iter(reversed(client_sensor)))
+    last_value = client_sensor[last_key]
+    server_sensor = data['Server']['SensorData']
+    _last_key = next(iter(reversed(server_sensor)))
+    _last_value = server_sensor[_last_key]
+    concat_data = {"Client": last_value, "Server": _last_value}
+    return jsonify(concat_data) if concat_data else jsonify({"error": "No data found"})
+
 
 # Route for streaming video feed
 @app.route('/video_feed')
