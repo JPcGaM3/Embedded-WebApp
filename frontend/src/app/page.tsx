@@ -8,32 +8,35 @@ import Image from "next/image";
 import { FaCamera } from "react-icons/fa";
 import { BiSolidCameraOff } from "react-icons/bi";
 
-
 interface Data {
   Client: {
-    SoilMoist: string;
-    Ultrasonic: string;
-    WaterPump: string;
+    timestamp: string;
+    soilMoist: number;
+    ultrasonic: number;
+    waterPump: boolean;
   };
   Server: {
-    Huminity: string;
-    LightSensor: string;
-    Temperature: string;
-    LightStatus: string;
+    timestamp: string;
+    humidity: number;
+    lightValue: number;
+    temperature: number;
+    lightStatus: string;
   };
 }
 
 const initialData: Data = {
   Client: {
-    SoilMoist: "",
-    Ultrasonic: "",
-    WaterPump: "",
+    timestamp: "",
+    soilMoist: 0,
+    ultrasonic: 0,
+    waterPump: false,
   },
   Server: {
-    Huminity: "",
-    LightSensor: "",
-    Temperature: "",
-    LightStatus: "Unknown",
+    timestamp: "",
+    humidity: 0,
+    lightValue: 0,
+    temperature: 0,
+    lightStatus: "",
   },
 };
 
@@ -46,85 +49,84 @@ export default function Home() {
     color: "white",
   });
 
-    useEffect(() => {
-      const fetchFirebaseData = async () => {
-        try {
-          const response = await fetch(
-            "http://localhost:8080/get_firebase_data"
-          );
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-          const data: Data = await response.json();
-          // Parse sensor values from Client and Server
-          const lightSensorValue = parseInt(data.Server.LightSensor);
-          const soilMoisture = parseInt(data.Client.SoilMoist);
-          const temperature = parseFloat(data.Server.Temperature);
-          const humidity = parseFloat(data.Server.Huminity);
-          const waterPumpStatus = data.Client.WaterPump; // "on" or "off"
+  const fetchFirebaseData = async () => {
+    try {
+      const response = await fetch("http://localhost:8080/get_firebase_data");
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data: Data = await response.json();
+      console.log(data.Client.soilMoist);
+      // Parse sensor values from Client and Server
+      const lightValueValue = data.Server.lightValue;
+      const soilMoisture = data.Client.soilMoist;
+      const temperature = data.Server.temperature;
+      const humidity = data.Server.humidity;
+      const waterPumpStatus = data.Client.waterPump; // "on" or "off"
 
-          // Default status and color
-          let status = { status: "Calculating...", color: "bg-white" };
+      // Default status and color
+      let status = { status: "Calculating...", color: "bg-white" };
 
-          if (
-            lightSensorValue < 100 ||
-            soilMoisture < 30 ||
-            temperature < 15 ||
-            humidity < 40
-          ) {
-            data.Server.LightStatus = "Dark";
-            status = { status: "Very Bad", color: "bg-red-400" };
-          } else if (
-            lightSensorValue < 1000 ||
-            soilMoisture < 40 ||
-            temperature < 18 ||
-            humidity < 50
-          ) {
-            data.Server.LightStatus = "Dim";
-            status = { status: "Bad", color: "bg-red-100" };
-          } else if (
-            lightSensorValue < 2000 ||
-            soilMoisture < 60 ||
-            temperature < 25 ||
-            humidity < 60
-          ) {
-            data.Server.LightStatus = "Light";
-            status = { status: "Moderate", color: "bg-yellow-100" };
-          } else if (
-            lightSensorValue < 3200 &&
-            soilMoisture <= 80 &&
-            temperature <= 30 &&
-            humidity <= 70
-          ) {
-            data.Server.LightStatus = "Bright";
-            status = { status: "Good", color: "bg-green-100" };
-          } else if (
-            lightSensorValue >= 3200 &&
-            soilMoisture > 80 &&
-            temperature > 30 &&
-            humidity > 70
-          ) {
-            data.Server.LightStatus = "Very bright";
-            status = { status: "Perfect", color: "bg-green-400" };
-          }
-          // Check water pump status to adjust status message
-          if (waterPumpStatus === "on") {
-            status = { status: "Watering", color: "bg-blue-200" };
-          }
+      if (
+        lightValueValue < 100 ||
+        soilMoisture < 30 ||
+        temperature < 15 ||
+        humidity < 40
+      ) {
+        data.Server.lightStatus = "Dark";
+        status = { status: "Very Bad", color: "bg-red-400" };
+      } else if (
+        lightValueValue < 1000 ||
+        soilMoisture < 40 ||
+        temperature < 18 ||
+        humidity < 50
+      ) {
+        data.Server.lightStatus = "Dim";
+        status = { status: "Bad", color: "bg-red-100" };
+      } else if (
+        lightValueValue < 2000 ||
+        soilMoisture < 60 ||
+        temperature < 25 ||
+        humidity < 60
+      ) {
+        data.Server.lightStatus = "Light";
+        status = { status: "Moderate", color: "bg-yellow-100" };
+      } else if (
+        lightValueValue < 3200 &&
+        soilMoisture <= 80 &&
+        temperature <= 30 &&
+        humidity <= 70
+      ) {
+        data.Server.lightStatus = "Bright";
+        status = { status: "Good", color: "bg-green-100" };
+      } else if (
+        lightValueValue >= 3200 &&
+        soilMoisture > 80 &&
+        temperature > 30 &&
+        humidity > 70
+      ) {
+        data.Server.lightStatus = "Very bright";
+        status = { status: "Perfect", color: "bg-green-400" };
+      }
+      // Check water pump status to adjust status message
+      if (waterPumpStatus) {
+        status = { status: "Watering", color: "bg-blue-200" };
+      }
 
-          // Update UI state
-          setStatus(status);
-          setData(data);
-        } catch (error) {
-          console.error("Error fetching Firebase data:", error);
-        }
-      };
+      // Update UI state
+      setStatus(status);
+      setData(data);
+    } catch (error) {
+      console.error("Error fetching Firebase data:", error);
+    }
+  };
 
-      fetchFirebaseData();
-      const intervalId = setInterval(fetchFirebaseData, 1000);
+  useEffect(() => {
+    fetchFirebaseData();
+    const intervalId = setInterval(fetchFirebaseData, 1000);
 
-      return () => clearInterval(intervalId);
-    }, []);
+    return () => clearInterval(intervalId);
+  }, []);
 
   useEffect(() => {
     if (isCameraOpen && videoRef.current) {
@@ -138,22 +140,22 @@ export default function Home() {
     {
       icon: <FaTemperatureHalf className="w-6 h-6" />,
       title: "Temperature",
-      value: data.Server.Temperature + "%",
+      value: data.Server.temperature + "%",
     },
     {
       icon: <MdOutlineLightMode className="w-6 h-6" />,
       title: "Light",
-      value: data.Server.LightStatus,
+      value: data.Server.lightStatus,
     },
     {
       icon: <WiHumidity className="w-8 h-8" />,
       title: "Humidity",
-      value: data.Server.Huminity + "%",
+      value: data.Server.humidity + "%",
     },
     {
       icon: <GiFertilizerBag className="w-6 h-6" />,
       title: "Soil moist",
-      value: data.Client.SoilMoist + "%",
+      value: data.Client.soilMoist + "%",
     },
     {
       icon: <MdEmojiEmotions className="w-6 h-6" />,
