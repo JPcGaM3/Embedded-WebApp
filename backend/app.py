@@ -48,7 +48,7 @@ except Exception as e:
     exit()
 
 # Line Notify function (optional for sending alerts)
-LINE_TOKEN = "your_line_notify_token"  # Replace with your Line Notify token
+LINE_TOKEN = "xVKToYyNrrXilrxvL71rmaFpl9CrHrRR3IA8FqnsZd0"  # Replace with your Line Notify token
 url = "https://notify-api.line.me/api/notify"
 headers = {"Authorization": f"Bearer {LINE_TOKEN}"}
 
@@ -133,6 +133,24 @@ def get_firebase_data():
     _last_key = next(iter(reversed(server_sensor)))
     _last_value = server_sensor[_last_key]
     concat_data = {"Client": last_value, "Server": _last_value}
+    return jsonify(concat_data) if concat_data else jsonify({"error": "No data found"})
+
+@app.route('/get_firebase_logs')
+def get_firebase_logs():
+    data = fetch_firebase_data()
+    client_sensor = data['Client']['SensorData']
+    client_sensor_list = []
+    for e in client_sensor :
+        client_sensor_list.append(client_sensor[e])
+    client_sensor_list = sorted(client_sensor_list, key=lambda x: int(x['timestamp']), reverse=True)
+
+    server_sensor = data['Server']['SensorData']
+    server_sensor_list = []
+    for e in server_sensor :
+        server_sensor_list.append(server_sensor[e])
+    server_sensor_list = sorted(server_sensor_list, key=lambda x: int(x['timestamp']), reverse=True)
+
+    concat_data = {"Client": client_sensor_list[:10], "Server": server_sensor_list[:10]}
     return jsonify(concat_data) if concat_data else jsonify({"error": "No data found"})
 
 

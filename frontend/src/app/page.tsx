@@ -8,6 +8,22 @@ import Image from "next/image";
 import { FaCamera } from "react-icons/fa";
 import { BiSolidCameraOff } from "react-icons/bi";
 
+interface Logs {
+  Client: {
+    timestamp: string;
+    soilMoist: number;
+    ultrasonic: number;
+    waterPump: boolean;
+  }[];
+  Server: {
+    timestamp: string;
+    humidity: number;
+    lightValue: number;
+    temperature: number;
+    lightStatus: string;
+    Status: string;
+  }[];
+}
 interface Data {
   Client: {
     timestamp: string;
@@ -21,6 +37,7 @@ interface Data {
     lightValue: number;
     temperature: number;
     lightStatus: string;
+    Status: string;
   };
 }
 
@@ -37,6 +54,7 @@ const initialData: Data = {
     lightValue: 0,
     temperature: 0,
     lightStatus: "",
+    Status: "",
   },
 };
 
@@ -44,6 +62,7 @@ export default function Home() {
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const videoRef = useRef<HTMLImageElement | null>(null);
   const [data, setData] = useState<Data>(initialData);
+  const [logs, setLogs] = useState<Logs>({ Client: [], Server: [] });
   const [status, setStatus] = useState({
     status: "Calculating...",
     color: "white",
@@ -58,55 +77,18 @@ export default function Home() {
       const data: Data = await response.json();
       console.log(data.Client.soilMoist);
       // Parse sensor values from Client and Server
-      const lightValueValue = data.Server.lightValue;
-      const soilMoisture = data.Client.soilMoist;
-      const temperature = data.Server.temperature;
-      const humidity = data.Server.humidity;
       const waterPumpStatus = data.Client.waterPump; // "on" or "off"
+      const plantStatus = data.Server.Status;
 
       // Default status and color
       let status = { status: "Calculating...", color: "bg-white" };
 
-      if (
-        lightValueValue < 100 ||
-        soilMoisture < 30 ||
-        temperature < 15 ||
-        humidity < 40
-      ) {
-        data.Server.lightStatus = "Dark";
-        status = { status: "Very Bad", color: "bg-red-400" };
-      } else if (
-        lightValueValue < 1000 ||
-        soilMoisture < 40 ||
-        temperature < 18 ||
-        humidity < 50
-      ) {
-        data.Server.lightStatus = "Dim";
-        status = { status: "Bad", color: "bg-red-100" };
-      } else if (
-        lightValueValue < 2000 ||
-        soilMoisture < 60 ||
-        temperature < 25 ||
-        humidity < 60
-      ) {
-        data.Server.lightStatus = "Light";
-        status = { status: "Moderate", color: "bg-yellow-100" };
-      } else if (
-        lightValueValue < 3200 &&
-        soilMoisture <= 80 &&
-        temperature <= 30 &&
-        humidity <= 70
-      ) {
-        data.Server.lightStatus = "Bright";
-        status = { status: "Good", color: "bg-green-100" };
-      } else if (
-        lightValueValue >= 3200 &&
-        soilMoisture > 80 &&
-        temperature > 30 &&
-        humidity > 70
-      ) {
-        data.Server.lightStatus = "Very bright";
-        status = { status: "Perfect", color: "bg-green-400" };
+      if (plantStatus == "sad") {
+        status = { status: "Sad", color: "bg-red-100" };
+      } else if (plantStatus == "good") {
+        status = { status: "Good", color: "bg-yellow-100" };
+      } else if (plantStatus == "happy") {
+        status = { status: "Happy", color: "bg-green-100" };
       }
       // Check water pump status to adjust status message
       if (waterPumpStatus) {
@@ -121,8 +103,22 @@ export default function Home() {
     }
   };
 
+  const fetchFirebaseLogs = async () => {
+    try {
+      const response = await fetch("http://localhost:8080/get_firebase_logs");
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data: Logs = await response.json();
+      setLogs(data);
+    } catch (error) {
+      console.error("Error fetching Firebase logs:", error);
+    }
+  };
+
   useEffect(() => {
     fetchFirebaseData();
+    fetchFirebaseLogs();
     const intervalId = setInterval(fetchFirebaseData, 1000);
 
     return () => clearInterval(intervalId);
@@ -166,7 +162,7 @@ export default function Home() {
   ];
 
   return (
-    <div className="h-screen">
+    <div className="gap-2 mt-4 mb-4 w-full h-full">
       <div className="flex flex-row gap-10 px-20">
         <div className="border-4 my-10 border-black rounded-[2rem] w-1/3 h-[400px]">
           <Image
@@ -222,6 +218,61 @@ export default function Home() {
             </div>
           </div>
         ))}
+      </div>
+      {/* Logs */}
+      <div className="flex flex-row justify-center space-x-4 mb-4 px-20 w-full">
+        <div className="w-[45%]">
+          <h2 className="mt-10 font-bold text-center text-xl">Client Logs</h2>
+          <table className="border-gray-300 bg-white mt-4 border min-w-full text-center">
+            <thead>
+              <tr>
+                <th className="px-4 py-2 border-b">Timestamp</th>
+                <th className="px-4 py-2 border-b">Soil Moist</th>
+                <th className="px-4 py-2 border-b">Ultrasonic</th>
+                <th className="px-4 py-2 border-b">Water Pump</th>
+              </tr>
+            </thead>
+            <tbody>
+              {logs.Client.map((log, index) => (
+                <tr key={index}>
+                  <td className="px-4 py-2 border-b">{log.timestamp}</td>
+                  <td className="px-4 py-2 border-b">{log.soilMoist}</td>
+                  <td className="px-4 py-2 border-b">{log.ultrasonic}</td>
+                  <td className="px-4 py-2 border-b">
+                    {log.waterPump ? "On" : "Off"}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className="w-[45%]">
+          <h2 className="mt-10 font-bold text-center text-xl">Server Logs</h2>
+          <table className="border-gray-300 bg-white mt-4 border min-w-full text-center">
+            <thead>
+              <tr>
+                <th className="px-4 py-2 border-b">Timestamp</th>
+                <th className="px-4 py-2 border-b">Humidity</th>
+                <th className="px-4 py-2 border-b">Light Value</th>
+                <th className="px-4 py-2 border-b">Temperature</th>
+                <th className="px-4 py-2 border-b">Light Status</th>
+                <th className="px-4 py-2 border-b">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {logs.Server.map((log, index) => (
+                <tr key={index}>
+                  <td className="px-4 py-2 border-b">{log.timestamp}</td>
+                  <td className="px-4 py-2 border-b">{log.humidity}</td>
+                  <td className="px-4 py-2 border-b">{log.lightValue}</td>
+                  <td className="px-4 py-2 border-b">{log.temperature}</td>
+                  <td className="px-4 py-2 border-b">{log.lightStatus}</td>
+                  <td className="px-4 py-2 border-b">{log.Status}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
