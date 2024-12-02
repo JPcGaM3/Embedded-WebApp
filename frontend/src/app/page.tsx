@@ -39,6 +39,7 @@ interface Data {
     lightStatus: string;
     Status: string;
   };
+  Status: string;
 }
 
 const initialData: Data = {
@@ -56,6 +57,7 @@ const initialData: Data = {
     lightStatus: "",
     Status: "",
   },
+  Status: "",
 };
 
 export default function Home() {
@@ -78,7 +80,7 @@ export default function Home() {
       console.log(data.Client.soilMoist);
       // Parse sensor values from Client and Server
       const waterPumpStatus = data.Client.waterPump; // "on" or "off"
-      const plantStatus = data.Server.Status;
+      const plantStatus = data.Status;
 
       // Default status and color
       let status = { status: "Calculating...", color: "bg-white" };
