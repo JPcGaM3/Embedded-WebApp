@@ -132,7 +132,18 @@ def get_firebase_data():
     server_sensor = data['Server']['SensorData']
     _last_key = next(iter(reversed(server_sensor)))
     _last_value = server_sensor[_last_key]
-    concat_data = {"Client": last_value, "Server": _last_value}
+    status = "Unknown"
+    soilMoistValue = last_value['soilMoist']
+    lightSensorValue = _last_value['lightValue'] 
+    temperature = _last_value['temperature']
+    humidity = _last_value['humidity'] 
+    if ((soilMoistValue >= 60 and soilMoistValue <= 80) and (lightSensorValue >= 600) and (temperature >= 22 and temperature <= 28) and (humidity >= 50 and humidity <= 70)):
+        status = "happy"
+    elif ((soilMoistValue >= 40 and soilMoistValue < 60) and (lightSensorValue >= 400 and lightSensorValue < 600) and (temperature >= 18 and temperature < 22) and (humidity >= 40 and humidity < 50)):
+        status = "good"
+    else:   
+        status = "sad"
+    concat_data = {"Client": last_value, "Server": _last_value, "Status": status}
     return jsonify(concat_data) if concat_data else jsonify({"error": "No data found"})
 
 @app.route('/get_firebase_logs')
